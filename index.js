@@ -29,16 +29,26 @@ app.get("/token/:token",function(req,res){
                 profile.first_name, profile.last_name, profile.id);
 
             tinder = new Tinder(token,profile.id);
-            tinder.start();
         }
     });
     res.send("ok");
 });
 
-//app.post("/fbtoken",function(req,res){
-    ////console.log(req)
-    //res.send("ok");
-//});
+app.post("/job",function(req,res){
+    // lat: 0.0, long: 0.0, limit: 10, retry_delay: 60*60
+});
+
+app.get("/job",function(req,res){
+    // return status
+});
+
+app.put("/job",function(req,res){
+    // pause: [true|false]
+});
+
+app.delete("/job",function(req,res){
+    // stop and delete job
+});
 
 app.listen(3000,"localhost",function(){
         log.info("Started");

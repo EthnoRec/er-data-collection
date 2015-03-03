@@ -1,5 +1,7 @@
 var tinder = require("tinderjs");
 var request = require("request");
+var fs = require("fs");
+var path = require("path");
 var _ = require("underscore");
 
 var config = require("./config");
@@ -13,7 +15,7 @@ var Tinder = function(token,uid) {
         var defaults = this.client.getDefaults();
         var fields = ["age_filter_min","age_filter_max",
         "birth_date","distance_filter","gender","gender_filter"];
-        this.settings = _.keep(defaults.user,fields);
+        this.settings = _.pick(defaults.user,fields);
     });
 };
 
@@ -30,7 +32,7 @@ Tinder.prototype.fetch = function() {
     this.authed(function() {
         this.client.getRecommendations(config.tinder.max_results,
             function(err,data){
-                _.each(data.results,Tinder.process);
+                _.each(data.results,Tinder.processPerson);
             });
     });
 };
@@ -46,10 +48,10 @@ Tinder.processPerson = function(person) {
 };
 
 Tinder.processImage = function(image) {
-    var uid = image.url.match(/.*gotinder.com\/(.*)\//);
+    var uid = image.url.match(/.*gotinder.com\/(.*)\//)[1];
     var filename = uid + "_" + image.fileName;
     request.get(image.url)
-        .pipe(fs.createWriteStream(path.join(config.gather.image_dir,filename)));
+        .pipe(fs.createWriteStream(path.join(process.cwd(),config.gather.image_dir,filename)));
 };
 
 

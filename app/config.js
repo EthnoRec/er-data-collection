@@ -4,6 +4,6 @@ module.exports = {
         refresh_seconds: 10*60
     },
     gather: {
-        image_dir: "~/Projects/yr3/proj/tinder-gather/gather-images"
+        image_dir: "gather-images"
     }
 };

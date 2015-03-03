@@ -1,5 +1,5 @@
 var config = {
-    extension: "oekgffokigknnlamdlicemedjeogpoob"
+    extension: "nongajphbjbfjdchjiochogopcbeiiam"
 };
 var request = function(req,cb) {
     chrome.runtime.sendMessage(config.extension, req, cb);
