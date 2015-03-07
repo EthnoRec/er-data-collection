@@ -1,4 +1,5 @@
 var request = require("request");
+var log = require("./logger");
 
 var Facebook = function(token){
    this.token = token; 
@@ -9,11 +10,14 @@ Facebook.prototype.getProfile = function(cb){
     var me = this;
     request("https://graph.facebook.com/me?access_token="+this.token,
             function(error,response,body){
-                if (error || response.statusCode != 200) {
-                    cb(error || response.statusCode, null);
+                //console.log(response);
+                if (error || response.statusCode !== 200) {
+                    error = JSON.parse(body).error;
+                    log.error("[Facebook#getProfile] - (%d)",response.statusCode,error);
+                    cb(error,response.statusCode, null);
                 } else {
                     me.profile = JSON.parse(body);
-                    cb(null,me.profile);
+                    cb(null,response.statusCode,me.profile);
                 }
             });
 };
