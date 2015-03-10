@@ -3,6 +3,8 @@ var request = require("request");
 var fs = require("fs");
 var path = require("path");
 var _ = require("underscore");
+var Promise = require("bluebird");
+
 var log = require("./logger");
 
 var config = require("./config");
@@ -184,4 +186,5 @@ Tinder.prototype.processImage = function(image) {
 };
 
 
+Tinder.prototype = Promise.promisifyAll(Tinder.prototype);
 module.exports = Tinder;
