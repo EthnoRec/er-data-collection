@@ -15,6 +15,8 @@ var Person = require("./models/Person");
 Person.sync();
 
 
+tinder = Promise.promisifyAll(tinder);
+
 var Job = function(tinder,options) {
     // options = location.lat: 0.0, location.long: 0.0, limit: 10, retry_delay: 60*60
     log.debug("[Job#new]",options);
@@ -75,35 +77,67 @@ Tinder.prototype.authed = function(cb){
         cb.call(me);
     }
 };
+Tinder.JobRequiredError = function(){
+    this.message = "A job is required for this action";
+};
+Tinder.JobRequiredError.prototype.__proto__ = Error.prototype;
+
+Tinder.prototype.withJob = function(){
+    if (this.job){
+        return Promise.resolve(this.job);
+    } else {
+        throw new Tinder.JobRequiredError();
+    }
+};
 
 Tinder.prototype.fetch = function() {
     var me = this;
     var sum = function(a){return _.reduce(a,function(s,x){return s+x;},0);};
 
-    if (this.job) {
-        log.debug("[Tinder#fetch] - wait for auth");
-        this.authed(function() {
-            log.debug("[Tinder#fetch] - authorised");
-            this.client.getRecommendations(this.job.limit,
-                function(err,data){
+    log.debug("[Tinder#fetch] - wait for auth");
+    Promise.join(this.authed,this.withJob)
+    .then(function(){
+        log.debug("[Tinder#fetch] - authorised");
+        return this.client.getRecommendations(me.job.limit);
+    })
+    .then(function(data){
+        return [Promise.resolve(data.results),Person.bulkCreateFromTinder(data.results,me.job.location)];
+    })
+    .spread(function(people,dpeople){
+        var images_fetched = 0;
 
-                    Person.bulkCreateFromTinder(data.results,me.job.location)
-                        .then(function(people) {
-                            var images_fetched = 0;
-
-                            _.each(data.results,function(person){
-                                images_fetched += sum(_.map(person.photos,me.processImage,me));
-                            });
-
-                            me.job.images_found += images_fetched;
-                            log.debug("[Tinder#fetch] - found %d people | %d new people and %d new images",
-                                data.results.length,-1,images_fetched,{});
-                        });
-                });
+        _.each(people,function(person){
+            images_fetched += sum(_.map(person.photos,me.processImage,me));
         });
-    } else {
-        log.warn("[Tinder#fetch] - attempted to fetch without a job");
-    }
+
+        me.job.images_found += images_fetched;
+        log.debug("[Tinder#fetch] - found %d people | %d new people and %d new images",
+            people.length,-1,images_fetched,{});
+
+    });
+
+        //this.authed(function() {
+            //log.debug("[Tinder#fetch] - authorised");
+            //this.client.getRecommendations(this.job.limit,
+                //function(err,data){
+
+                    //Person.bulkCreateFromTinder(data.results,me.job.location)
+                        //.then(function(people) {
+                            //var images_fetched = 0;
+
+                            //_.each(data.results,function(person){
+                                //images_fetched += sum(_.map(person.photos,me.processImage,me));
+                            //});
+
+                            //me.job.images_found += images_fetched;
+                            //log.debug("[Tinder#fetch] - found %d people | %d new people and %d new images",
+                                //data.results.length,-1,images_fetched,{});
+                        //});
+                //});
+        //});
+    //} else {
+        //log.warn("[Tinder#fetch] - attempted to fetch without a job");
+    //}
 };
 
 Tinder.prototype.submitJob = function(job) {
@@ -140,16 +174,11 @@ Tinder.prototype.stopJob = function(cb) {
 };
 
 
-Tinder.prototype.jobStatus = function(cb) {
-    if (this.job) {
-        cb(null,this.job.status());
-    } else {
-        var message = "cannot get status of nonexisting job";
-        log.error("[Tinder#jobStatus] - %s",message);
-
-        cb(message);
-    }
+Tinder.prototype.jobStatus = function() {
+    return this.withJob()
+        .then(Promise.resolve(this.job.status()))
 };
+
 
 //Tinder.prototype.processPerson = function(person) {
     //// save to database
@@ -186,5 +215,5 @@ Tinder.prototype.processImage = function(image) {
 };
 
 
-Tinder.prototype = Promise.promisifyAll(Tinder.prototype);
+//Tinder.prototype = Promise.promisifyAll(Tinder.prototype);
 module.exports = Tinder;

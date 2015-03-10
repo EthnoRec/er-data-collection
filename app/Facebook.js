@@ -9,28 +9,16 @@ var Facebook = function(token){
 
 Facebook.prototype.getProfile = function(cb){
     var me = this;
-    request("https://graph.facebook.com/me?access_token="+this.token)
+    return request("https://graph.facebook.com/me?access_token="+this.token)
         .spread(function(response,body){
             if (response.statusCode !== 200) {
-                throw JSON.parse(body).error;
+                var err = JSON.parse(body).error;
+                err.statusCode = response.statusCode;
+                throw err;
             }
-            console.log(response.statusCode);
-        })
-        .catch(function(error){
-            log.error("[Facebook#getProfile] -",error);
+            me.profile = JSON.parse(body);
+            return Promise.resolve(me.profile);
         });
-
-            //function(error,response,body){
-                ////console.log(response);
-                //if (error || response.statusCode !== 200) {
-                    //error = JSON.parse(body).error;
-                    //log.error("[Facebook#getProfile] - (%d)",response.statusCode,error);
-                    //cb(error,response.statusCode, null);
-                //} else {
-                    //me.profile = JSON.parse(body);
-                    //cb(null,response.statusCode,me.profile);
-                //}
-            //});
 };
 
 module.exports = Facebook;
