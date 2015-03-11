@@ -26,11 +26,22 @@ var Job = function(tinder,options) {
     _.extend(this,options);
 };
 
+Job.JobRequiredError = function(){
+    this.name = "JobRequiredError";
+    this.message = "A job is required for this action";
+};
+Job.JobRequiredError.prototype = Object.create(Error.prototype, { 
+      constructor: { value: Job.JobRequiredError } 
+});
 Job.prototype.start = function() {
     log.debug("[Job#start]");
     // update position (updatePosition) and then do the following
     this.tinder.fetch();
     this.interval = setInterval(this.tinder.fetch,this.retry_delay*1000);
+    this.started = this.interval.started = Date.now();
+    this.interval.getTimeLeft = function() {
+        return Math.round((this._idleTimeout - (Date.now()-this.started) % this._idleTimeout) / 1000);
+    };
     this.online = true;
 };
 
@@ -41,11 +52,19 @@ Job.prototype.stop = function() {
 };
 
 Job.prototype.status = function() {
-    var status = _.pick(this,"location","limit","retry_delay","people_found","images_found","online");
+    var status = _.pick(this,"location","limit","retry_delay","people_found","images_found","online","started");
+    status.next_fetch = this.interval.getTimeLeft();
     log.debug("[Job#status] - %j",status,{});
-    //debugger;
     return status;
 };
+
+Job.required = Promise.promisify(function(cb){
+    if (!Job.job) {
+        cb(new Job.JobRequiredError());
+    } else {
+        cb(null,Job.job);
+    }
+});
 
 var Tinder = function(token,uid) {
     var promisified = function(client){
@@ -79,18 +98,15 @@ Tinder.prototype.authed = Promise.promisify(function(cb){
         cb.call(me);
     }
 });
-Tinder.JobRequiredError = function(){
-    this.message = "A job is required for this action";
-};
-Tinder.JobRequiredError.prototype = Object.create(Error.prototype, { 
-      constructor: { value: Tinder.JobRequiredError } 
-});
+
 
 Tinder.prototype.withJob = function(){
     if (this.job){
+        log.debug("[Tinder#withJob] - job exists");
         return Promise.resolve(this.job);
     } else {
-        throw new Tinder.JobRequiredError();
+        log.debug("[Tinder#withJob] - job does not exist");
+        throw new Job.JobRequiredError();
     }
 };
 
@@ -124,17 +140,18 @@ Tinder.prototype.fetch = function() {
 
 Tinder.prototype.submitJob = function(job) {
     log.debug("[Tinder#submitJob]");
-    this.job = new Job(this,job);
+    Job.job = this.job = new Job(this,job);
     this.job.start();
 };
 
 Tinder.prototype.pause = function(state,cb) {
+    // TODO: pause the actual timer
     if (state && this.job) {
-        this.job.start();
+        this.job.stop();
         log.debug("[Tinder#pause] - Job paused");
         cb(null,state);
     } else if (!state && this.job) {
-        this.job.stop();
+        this.job.start();
         log.debug("[Tinder#pause] - Job unpaused");
         cb(null,state);
     } else {
@@ -142,18 +159,18 @@ Tinder.prototype.pause = function(state,cb) {
     }
 };
 
-Tinder.prototype.stopJob = function(cb) {
+Tinder.prototype.stopJob = Promise.promisify(function(cb) {
     if (this.job) {
         this.job.stop();
         delete this.job;
-        cb();
         log.debug("[Tinder#stopJob] - stopped and deleted");
+        cb();
     } else {
         var message = "attempted to stop nonexisting job";
         log.warn("[Tinder#stopJob] - %s",message);
         cb(message);
     }
-};
+});
 
 
 Tinder.prototype.jobStatus = function() {
@@ -175,5 +192,23 @@ Tinder.prototype.processImage = function(image) {
     }
 };
 
+Tinder.TinderRequiredError = function(){
+    this.name = "TinderRequiredError";
+    this.message = "Cannot perform this action or access this " +
+             "resource without a valid token and Tinder instance";
+};
+Tinder.TinderRequiredError.prototype = Object.create(Error.prototype, { 
+      constructor: { value: Tinder.TinderRequiredError } 
+});
 
-module.exports = Tinder;
+
+Tinder.required = Promise.promisify(function(cb){
+    if (!Tinder.tinder) {
+        cb(new Tinder.TinderRequiredError());
+    } else {
+        cb(null,Tinder.tinder);
+    }
+});
+
+module.exports.Tinder = Tinder;
+module.exports.Job = Job;

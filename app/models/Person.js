@@ -1,9 +1,10 @@
 var Sequelize = require("sequelize");
 var _ = require("underscore");
-var log = require("../logger");
 var moment = require("moment");
+var util = require("util");
 
 var config = require("../config");
+var log = require("../logger");
 
 var seq = new Sequelize(config.db.database, config.db.username, config.db.password, config.db);
 
@@ -35,6 +36,15 @@ var Person = seq.define("Person", {
                 {ignoreDuplicates:true});
         }
     }
+});
+
+
+Person.PersonNotFoundError = function(_id){
+    this.name = "PersonNotFoundError";
+    this.message = util.format("The person with _id=%s could not be found",_id);
+};
+Person.PersonNotFoundError.prototype = Object.create(Error.prototype, { 
+      constructor: { value: Person.PersonNotFoundError } 
 });
 
 module.exports = Person;

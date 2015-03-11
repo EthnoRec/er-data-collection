@@ -22,4 +22,11 @@ actions.job_get = function() {
         });
 };
 
+actions.job_delete = function() {
+    request
+        .del(host+"/job",{},function(error,response,body){
+            console.log(response.statusCode); 
+            console.log(body); 
+        });
+};
 actions[action]();
