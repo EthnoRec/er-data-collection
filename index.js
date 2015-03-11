@@ -58,9 +58,14 @@ var withTinderJob = function(){
 app.post("/job",function(req,res){
     // lat: 0.0, long: 0.0, limit: 10, retry_delay: 60*60
     log.debug("[%s %s] - %j",req.method,req.url,req.body,{});
-    withTinder(req,res,function(){
-        tinder.submitJob(req.body);
-        res.sendStatus(200);
+    withTinder(function(err){
+        if (err) {
+            log.error("[%s %s] - %s",req.method,req.url,err.message,{});
+            res.status(400).send(err.message);
+        } else {
+            tinder.submitJob(req.body);
+            res.sendStatus(200);
+        }
     });
 });
 
@@ -80,7 +85,7 @@ app.get("/job",function(req,res){
             res.status(200).send(status);
         })
         .catch(function(err){
-            log.debug("[%s %s] - %s",req.method,req.url,err,{});
+            log.error("[%s %s] - %s",req.method,req.url,err.message,{});
             res.status(400).send(err.message);
         })
 });
@@ -95,7 +100,7 @@ app.put("/job",function(req,res){
         }
     })
     .catch(function(err){
-        log.debug("[%s %s] - %s",req.method,req.url,err,{});
+        log.error("[%s %s] - %s",req.method,req.url,err.message,{});
         res.status(400).send(err.message);
     })
 });
