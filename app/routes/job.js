@@ -26,8 +26,10 @@ router.post("/job",function(req,res){
     log.debug("[%s %s] - %j",req.method,req.url,req.body,{});
     withTinder()
         .then(function(){
-            Tinder.tinder.submitJob(req.body);
-            res.status(200).send("{}");
+            return Tinder.tinder.submitJob(req.body);
+        })
+        .then(function(){
+            res.status(201).send({message:null});
         })
         .catch(Tinder.TinderRequiredError,function(err){
             log.error("[%s %s] - (%s) %s",req.method,req.url,err.name,err.message,{});
@@ -35,6 +37,7 @@ router.post("/job",function(req,res){
         })
         .catch(function(err){
             log.error("[%s %s] - %s",req.method,req.url,err.message,{});
+            console.log(err.stack);
             res.status(500).send(err.message);
         });
 });

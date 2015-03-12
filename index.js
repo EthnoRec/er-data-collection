@@ -39,6 +39,26 @@ app.get("/token/:token",function(req,res){
 app.use("",require("./app/routes/job"));
 app.use("",require("./app/routes/person"));
 
+app.put("/tinder",function(req,res){
+    log.debug("[%s %s] - %j",req.method,req.url,req.body,{});
+    // TODO: support more settings and add error checking
+    Tinder.required().then(function(tinder){
+        return tinder.updatePosition(req.body.location);
+    })
+    .then(function(d){
+        log.debug("[%s %s] - %j",req.method,req.url,d,{});
+        res.status(200).send("OK");
+    })
+    .catch(Tinder.TinderRequiredError,function(err){
+        log.error("[%s %s] - (%s) %s",req.method,req.url,err.name,err.message,{});
+        res.status(401).send(err);
+    })
+    .catch(function(err){
+        log.error("[%s %s] - (%s) %s",req.method,req.url,err.name,err.message,{});
+        res.status(500).send(err.message);
+    });
+});
+
 app.listen(3000,"localhost",function(){
         log.info("[express] - Started");
     })

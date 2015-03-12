@@ -5,8 +5,14 @@ var actions = {};
 var action = process.argv[2];
 var host = "http://localhost:3000";
 
+var location = {};
+location.milan = {lat: 45.465422, long: 9.185924};
+location.guadalajara = {lat: 20.659699, long: -103.349609};
+location.manchester = {lat: 53.480759, long: -2.242631};
+
 actions.job_post = function() {
-    var body = { location: {lat: 0.0, long: 0.0}, limit: 10, retry_delay: 60*60 };
+
+    var body = { location: location.manchester, limit: 10, retry_delay: 60*60 };
     request
         .post(host+"/job",{json:true,body:body},function(error,response,body){
             console.log(response.statusCode); 
@@ -25,6 +31,14 @@ actions.job_get = function() {
 actions.job_delete = function() {
     request
         .del(host+"/job",{},function(error,response,body){
+            console.log(response.statusCode); 
+            console.log(body); 
+        });
+};
+actions.tinder_put = function() {
+    var body = {location:location.manchester};
+    request
+        .put(host+"/tinder",{json:true,body:body},function(error,response,body){
             console.log(response.statusCode); 
             console.log(body); 
         });

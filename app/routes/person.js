@@ -12,6 +12,7 @@ var Person = require("../models/Person");
 
 
 router.get("/person/list",function(req,res){
+    log.debug("[%s %s] - %j",req.method,req.url,req.body,{});
     Person.findAll({})
         .then(function(people){
             res.send(people);
@@ -23,6 +24,7 @@ router.get("/person/list",function(req,res){
 });
 
 router.get("/person/:_id",function(req,res){
+    log.debug("[%s %s] - %j",req.method,req.url,req.body,{});
     Person.findOne({where:{_id:req.params._id}})
         .then(function(person){
             if (person) {

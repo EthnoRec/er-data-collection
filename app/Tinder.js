@@ -34,15 +34,28 @@ Job.JobRequiredError.prototype = Object.create(Error.prototype, {
       constructor: { value: Job.JobRequiredError } 
 });
 Job.prototype.start = function() {
+    var me = this;
     log.debug("[Job#start]");
-    // update position (updatePosition) and then do the following
-    this.tinder.fetch();
-    this.interval = setInterval(this.tinder.fetch,this.retry_delay*1000);
-    this.started = this.interval.started = Date.now();
-    this.interval.getTimeLeft = function() {
-        return Math.round((this._idleTimeout - (Date.now()-this.started) % this._idleTimeout) / 1000);
+    var _start = function(location){
+        me.tinder.fetch();
+        me.interval = setInterval(me.tinder.fetch,me.retry_delay*1000);
+        me.started = me.interval.started = Date.now();
+        me.interval.getTimeLeft = function() {
+            return Math.round((this._idleTimeout - (Date.now()-this.started) % this._idleTimeout) / 1000);
+        };
+        me.online = true;
+        return me;
     };
-    this.online = true;
+    if (this.location) {
+        return this.tinder.updatePosition(this.location).then(_start)
+        .catch(Tinder.SmallChangeError,function(err){
+            log.warn("[Job#start] - location change request ignored (%s)",err.name);
+            _start();
+            return Promise.resolve(me);
+        })
+    } else {
+        return Promise.resolve(me);    
+    }
 };
 
 Job.prototype.stop = function() {
@@ -69,6 +82,7 @@ Job.required = Promise.promisify(function(cb){
 var Tinder = function(token,uid) {
     var promisified = function(client){
         client.getRecommendations = Promise.promisify(client.getRecommendations);
+        client.updatePosition = Promise.promisify(client.updatePosition);
         return client; 
     };
 
@@ -100,6 +114,26 @@ Tinder.prototype.authed = Promise.promisify(function(cb){
 });
 
 
+Tinder.prototype.updatePosition = function(location) {
+    var me = this;
+    return this.client.updatePosition(location.long,location.lat)
+        .then(function(response){
+            if (response.error){
+                if (response.error === "major position change not significant"){
+                    throw new Tinder.MajorChangeError();
+                } else if (response.error === "position change not significant") {
+                    throw new Tinder.SmallChangeError();
+                } else {
+                    throw new Error("Unknown Tinder error");
+                }
+            } else {
+                me.location = location;
+                return location;
+            }
+        });
+};
+
+
 Tinder.prototype.withJob = function(){
     if (this.job){
         log.debug("[Tinder#withJob] - job exists");
@@ -122,6 +156,11 @@ Tinder.prototype.fetch = function() {
         return p;
     })
     .then(function(data){
+        if (data.message) {
+            if (data.message === "recs timeout") {
+                throw new Tinder.RecsTimeoutError();
+            }
+        }
         return [Promise.resolve(data.results),Person.bulkCreateFromTinder(data.results,me.job.location)];
     })
     .spread(function(people){
@@ -141,7 +180,7 @@ Tinder.prototype.fetch = function() {
 Tinder.prototype.submitJob = function(job) {
     log.debug("[Tinder#submitJob]");
     Job.job = this.job = new Job(this,job);
-    this.job.start();
+    return this.job.start();
 };
 
 Tinder.prototype.pause = function(state,cb) {
@@ -201,6 +240,27 @@ Tinder.TinderRequiredError.prototype = Object.create(Error.prototype, {
       constructor: { value: Tinder.TinderRequiredError } 
 });
 
+Tinder.RecsTimeoutError = function(){
+    this.name = "RecsTimeoutError";
+    this.message = "Did not find nearby users quick enough";
+};
+Tinder.RecsTimeoutError.prototype = Object.create(Error.prototype, { 
+      constructor: { value: Tinder.RecsTimeoutError } 
+});
+Tinder.MajorChangeError = function(){
+    this.name = "MajorChangeError";
+    this.message = "Major position change (changing positions too far too quickly)";
+};
+Tinder.MajorChangeError.prototype = Object.create(Error.prototype, { 
+      constructor: { value: Tinder.MajorChangeError } 
+});
+Tinder.SmallChangeError = function(){
+    this.name = "SmallChangeError";
+    this.message = "Minor position change (new position is not far enough to warrant a change)";
+};
+Tinder.SmallChangeError.prototype = Object.create(Error.prototype, { 
+      constructor: { value: Tinder.SmallChangeError } 
+});
 
 Tinder.required = Promise.promisify(function(cb){
     if (!Tinder.tinder) {
