@@ -8,6 +8,8 @@ var log = require("../logger");
 
 var seq = new Sequelize(config.db.database, config.db.username, config.db.password, config.db);
 
+var Image = require("./Image");
+
 var personFromTinder = function(p,location) {
     p = _.pick(p, "_id", "distance_mi", "name", "gender", "date_of_birth");
     p.date_of_birth = moment(p.date_of_birth).unix();
@@ -39,6 +41,13 @@ var Person = seq.define("Person", {
 });
 
 
+Person.hasMany(Image,{
+    foreignKey: {
+        name: "person_id",
+        allowNull: false
+    }
+});
+
 Person.PersonNotFoundError = function(_id){
     this.name = "PersonNotFoundError";
     this.message = util.format("The person with _id=%s could not be found",_id);
@@ -48,3 +57,4 @@ Person.PersonNotFoundError.prototype = Object.create(Error.prototype, {
 });
 
 module.exports = Person;
+

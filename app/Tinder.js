@@ -12,8 +12,6 @@ var config = require("./config");
 var Sequelize = require("sequelize");
 var Person = require("./models/Person");
 
-Person.sync();
-
 var Job = function(tinder,options) {
     // options = location.lat: 0.0, location.long: 0.0, limit: 10, retry_delay: 60*60
     log.debug("[Job#new]",options);

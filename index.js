@@ -12,6 +12,18 @@ var app = express();
 app.use("/",express.static(__dirname + "/public"));
 app.use(require("body-parser").json());
 
+// DB START
+var Box = require("./app/models/Box");
+var FaceDetection = require("./app/models/FaceDetection");
+var Image = require("./app/models/Image");
+var Person = require("./app/models/Person");
+
+Box.sync()
+    .then(FaceDetection.sync())
+    .then(Image.sync())
+    .then(Person.sync());
+
+// DB END
 
 // Global variables
 var fb = null;

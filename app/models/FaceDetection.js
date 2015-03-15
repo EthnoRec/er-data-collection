@@ -1,0 +1,27 @@
+var Sequelize = require("sequelize");
+//var _ = require("underscore");
+//var moment = require("moment");
+//var util = require("util");
+
+var config = require("../config");
+//var log = require("../logger");
+var Box = require("./Box");
+
+var seq = new Sequelize(config.db.database, config.db.username, config.db.password, config.db);
+
+var FaceDetection = seq.define("FaceDetection", {
+    _id: {primaryKey: true, type: Sequelize.INTEGER, autoIncrement: true, allowNull: false},
+    score: Sequelize.FLOAT,
+    component: Sequelize.INTEGER
+}, {});
+
+
+FaceDetection.hasMany(Box,{
+    foreignKey: {
+        name: "fd_id",
+        allowNull: false
+    }
+});
+
+
+module.exports = FaceDetection;

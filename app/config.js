@@ -8,9 +8,16 @@ config.development = {
     gather: {
         image_dir: "gather-images"
     },
+    //db: {
+        //dialect: "sqlite",
+        //storage: path.join(process.cwd(),"tinder.development.db")
+    //},
     db: {
-        dialect: "sqlite",
-        storage: path.join(process.cwd(),"tinder.development.db")
+        dialect: "postgres",
+        host: "127.0.0.1",
+        database: "tinder",
+        username: "tinder",
+        password: "tinder_pw"
     },
     logger: {
         level: "debug"
