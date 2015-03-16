@@ -5,8 +5,7 @@ var Sequelize = require("sequelize");
 
 var config = require("../config");
 //var log = require("../logger");
-
-var seq = new Sequelize(config.db.database, config.db.username, config.db.password, config.db);
+var seq = require("./index").sequelize;
 
 var Box = seq.define("Box", {
     _id: {primaryKey: true, type: Sequelize.INTEGER, autoIncrement: true, allowNull: false},

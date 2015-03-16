@@ -7,8 +7,7 @@ var config = require("../config");
 //var log = require("../logger");
 var FaceDetection = require("./FaceDetection");
 
-var seq = new Sequelize(config.db.database, config.db.username, config.db.password, config.db);
-
+var seq = require("./index").sequelize;
 var Image = seq.define("Image", {
     _id: {primaryKey: true, type: Sequelize.CHAR(36), allowNull: false},
 }, {});

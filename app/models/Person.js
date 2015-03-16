@@ -6,7 +6,8 @@ var util = require("util");
 var config = require("../config");
 var log = require("../logger");
 
-var seq = new Sequelize(config.db.database, config.db.username, config.db.password, config.db);
+var seq = require("./index").sequelize;
+
 
 var Image = require("./Image");
 
