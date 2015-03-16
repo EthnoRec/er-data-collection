@@ -159,14 +159,10 @@ Tinder.prototype.fetch = function() {
                 throw new Tinder.RecsTimeoutError();
             }
         }
-        return [Promise.resolve(data.results),Person.bulkCreateFromTinder(data.results,me.job.location)];
+        return Person.bulkCreateFromTinder(data.results,me.job.location);
     })
-    .spread(function(people){
+    .then(function(people){
         var images_fetched = 0;
-
-        _.each(people,function(person){
-            images_fetched += sum(_.map(person.photos,me.processImage,me));
-        });
 
         me.job.images_found += images_fetched;
         log.debug("[Tinder#fetch] - found %d people | %d new people and %d new images",
@@ -216,18 +212,6 @@ Tinder.prototype.jobStatus = function() {
 };
 
 
-Tinder.prototype.processImage = function(image) {
-    try {
-        var uid = image.url.match(/.*gotinder.com\/(.*)\//)[1];
-        var filename = uid + "_" + image.fileName;
-        request.get(image.url)
-            .pipe(fs.createWriteStream(path.join(process.cwd(),config.gather.image_dir,filename)));
-        return 1;
-    } catch(e) {
-        log.error("[Tinder#processImage] - %s",e);
-        return 0;
-    }
-};
 
 Tinder.TinderRequiredError = function(){
     this.name = "TinderRequiredError";

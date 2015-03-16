@@ -2,6 +2,7 @@ var Sequelize = require("sequelize");
 var _ = require("underscore");
 var moment = require("moment");
 var util = require("util");
+var Promise = require("bluebird");
 
 var config = require("../config");
 var log = require("../logger");
@@ -19,6 +20,25 @@ var personFromTinder = function(p,location) {
     return p;
 };
 
+var processImages = function(ps) {
+    // [Promise<[Image]>]
+    var imgPromises = _.map(ps,function(p){return Image.bulkCreateFromTinder(p.photos);});
+    return Promise.each(imgPromises,function(images){
+        var badImageIds = _(images).reject(function(image){
+            // reject images that saved successfully
+            return image.download();
+        }).map(function(image){
+            return image._id;
+        });
+
+        // wait until bad images are deleted
+        if (badImageIds.length > 0) {
+            return Image.destroy({where: {_id: {$in: badImageIds}}});
+        }
+    });
+};
+
+
 var Person = seq.define("Person", {
     _id: {primaryKey: true, type: Sequelize.CHAR(24), allowNull: false},
     distance_mi: Sequelize.INTEGER,
@@ -29,23 +49,28 @@ var Person = seq.define("Person", {
     origin_long: Sequelize.FLOAT
 }, {
     classMethods: {
-        createFromTinder: function (p, location) {
-            log.debug("[Person#createFromTinder] - %j (location=%j)", p, location, {});
-            return this.create(p);
-        },
         bulkCreateFromTinder: function (ps, location) {
+            var sum = function(a){return _.reduce(a,function(s,x){return s+x;},0);};
             log.debug("[Person#bulkCreateFromTinder] - %d people (location=%j)", ps.length, location, {});
-            return this.bulkCreate(_.map(ps,function(p){return personFromTinder(p,location);}),
-                {ignoreDuplicates:true});
+            return this.bulkCreate(_.map(ps,function(p){return personFromTinder(p,location);}))
+                .then(function(people){
+                    return processImages(ps)
+                        .then(function(){
+                            return people;
+                        });
+                });
         }
     }
 });
 
 
+
+
+
 Person.hasMany(Image,{
     foreignKey: {
         name: "person_id",
-        allowNull: false
+        allowNull: true
     }
 });
 
@@ -59,3 +84,6 @@ Person.PersonNotFoundError.prototype = Object.create(Error.prototype, {
 
 module.exports = Person;
 
+if (process.env.NODE_ENV == "test") {
+    module.exports.processImages = processImages;
+}
