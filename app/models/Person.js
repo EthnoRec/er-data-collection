@@ -8,6 +8,8 @@ var config = require("../config");
 var log = require("../logger");
 
 var seq = require("./index").sequelize;
+var bulkIgnoreDuplicates = require("./index").bulkIgnoreDuplicates;
+var NoUniqueRecordsError = require("./index").NoUniqueRecordsError;
 
 
 var Image = require("./Image");
@@ -58,6 +60,9 @@ var Person = seq.define("Person", {
                         .then(function(){
                             return people;
                         });
+                })
+                .catch(NoUniqueRecordsError,function(e){
+                    log.warn("[Persoon::bulkCreateFromTinder] - (%s) %s",e.name,e.message);
                 });
         }
     }
@@ -65,6 +70,7 @@ var Person = seq.define("Person", {
 
 
 
+bulkIgnoreDuplicates(Person);
 
 
 Person.hasMany(Image,{

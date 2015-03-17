@@ -162,11 +162,8 @@ Tinder.prototype.fetch = function() {
         return Person.bulkCreateFromTinder(data.results,me.job.location);
     })
     .then(function(people){
-        var images_fetched = 0;
-
-        me.job.images_found += images_fetched;
         log.debug("[Tinder#fetch] - found %d people | %d new people and %d new images",
-            people.length,-1,images_fetched,{});
+            people.length,-1,-1,{});
 
     });
 };

@@ -18,12 +18,12 @@ describe("Model",function(){
                         return img;    
                     };
                     Image.instanceDownload = function() {
-                        return this.ext != "error";
+                        return this.ext != "err";
                     };
                     var people = [
                         { photos: [
-                            {_id: "error1", ext:"error" },
-                            {_id: "error2", ext:"error" },
+                            {_id: "error1", ext:"err" },
+                            {_id: "error2", ext:"err" },
                             {_id: "good1" },
                             {_id: "good2" }
                         ]}

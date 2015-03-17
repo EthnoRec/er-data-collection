@@ -8,14 +8,10 @@ config.development = {
     gather: {
         image_dir: "gather-images"
     },
-    //db: {
-        //dialect: "sqlite",
-        //storage: path.join(process.cwd(),"tinder.development.db")
-    //},
     db: {
         dialect: "postgres",
         host: "127.0.0.1",
-        database: "tinder",
+        database: "tinder_development",
         username: "tinder",
         password: "tinder_pw"
     },
@@ -32,8 +28,11 @@ config.production = {
         image_dir: "gather-images"
     },
     db: {
-        dialect: "sqlite",
-        storage: path.join(process.cwd(),"tinder.development.db")
+        dialect: "postgres",
+        host: "127.0.0.1",
+        database: "tinder",
+        username: "tinder",
+        password: "tinder_pw"
     },
     logger: {
         level: "info"
@@ -49,8 +48,11 @@ config.test = {
         image_dir: "gather-images"
     },
     db: {
-        dialect: "sqlite",
-        storage: path.join(process.cwd(),"tinder.test.db")
+        dialect: "postgres",
+        host: "127.0.0.1",
+        database: "tinder_test",
+        username: "tinder",
+        password: "tinder_pw"
     },
     logger: {
         level: "debug"

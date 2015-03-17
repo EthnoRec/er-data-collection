@@ -11,6 +11,9 @@ var log = require("../logger");
 var FaceDetection = require("./FaceDetection");
 
 var seq = require("./index").sequelize;
+var bulkIgnoreDuplicates = require("./index").bulkIgnoreDuplicates;
+var NoUniqueRecordsError = require("./index").NoUniqueRecordsError;
+
 var _ = require("underscore");
 
 
@@ -31,7 +34,12 @@ var Image = seq.define("Image", {
 }, {
     classMethods: {
         bulkCreateFromTinder: function(photos) {
-           return this.bulkCreate(_.map(photos,function(p){return Image.imageFromTinder(p);}));
+           return this.bulkCreate(_.map(photos,function(p){
+               return Image.imageFromTinder(p);
+           }))
+                .catch(NoUniqueRecordsError,function(e){
+                    log.warn("[Image::bulkCreateFromTinder] - (%s) %s",e.name,e.message);
+                });
         }
     },
     instanceMethods: {
@@ -60,8 +68,8 @@ Image.hasMany(FaceDetection,{
     }
 });
 
+bulkIgnoreDuplicates(Image);
 
-if (process.env.NODE_ENV == "test") {
-    Image.imageFromTinder = imageFromTinder;
-}
+Image.imageFromTinder = imageFromTinder;
 module.exports = Image;
+
