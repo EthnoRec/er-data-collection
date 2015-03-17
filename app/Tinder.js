@@ -36,7 +36,12 @@ Job.prototype.start = function() {
     log.debug("[Job#start]");
     var _start = function(location){
         me.tinder.fetch();
-        me.interval = setInterval(me.tinder.fetch,me.retry_delay*1000);
+        me.interval = setInterval((function(me){ 
+            return function(){
+                me.fetch();
+            };
+        })(me.tinder),me.retry_delay*1000);
+
         me.started = me.interval.started = Date.now();
         me.interval.getTimeLeft = function() {
             return Math.round((this._idleTimeout - (Date.now()-this.started) % this._idleTimeout) / 1000);
@@ -142,12 +147,12 @@ Tinder.prototype.withJob = function(){
     }
 };
 
-Tinder.prototype.fetch = function() {
-    var me = this;
+Tinder.prototype.fetch = function(me) {
+    var me = me || this;
     var sum = function(a){return _.reduce(a,function(s,x){return s+x;},0);};
 
     log.debug("[Tinder#fetch] - wait for auth");
-    return this.authed().then(this.withJob())
+    return me.authed().then(me.withJob())
     .then(function(){
         log.debug("[Tinder#fetch] - authorised");
         var p = me.client.getRecommendations(me.job.limit);
