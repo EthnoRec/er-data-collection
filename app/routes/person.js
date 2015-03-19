@@ -9,6 +9,7 @@ var Tinder = require("../Tinder").Tinder;
 var Job = require("../Tinder").Job;
 
 var Person = require("../models/Person");
+var Image = require("../models/Image");
 
 
 router.get("/person/list",function(req,res){
@@ -41,6 +42,21 @@ router.get("/person/:_id",function(req,res){
             log.error("[%s %s] - %s",req.method,req.url,err.message,{});
             res.status(500).send(err);
         });
+});
+
+
+router.get("/image/:_id",function(req,res){
+    log.debug("[%s %s] - %j",req.method,req.url,req.body,{});
+    Image.find({where:{_id:req.params._id}})
+    .then(function(img){
+        return img.showDetections();
+    })
+    .then(function(im){
+        var buf = im.toBuffer();
+        res.set("Content-Type", "image/jpeg");
+        res.set("Content-Length", buf.length);
+        res.send(buf);
+    });
 });
 
 module.exports = router;

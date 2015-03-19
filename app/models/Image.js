@@ -2,7 +2,9 @@ var Sequelize = require("sequelize");
 var request = require("request");
 var fs = require("fs");
 var path = require("path");
-//var _ = require("underscore");
+var cv = require("opencv");
+var Promise = require("bluebird");
+var _ = require("underscore");
 //var moment = require("moment");
 //var util = require("util");
 
@@ -37,9 +39,9 @@ var Image = seq.define("Image", {
            return this.bulkCreate(_.map(photos,function(p){
                return Image.imageFromTinder(p);
            }))
-                .catch(NoUniqueRecordsError,function(e){
-                    log.warn("[Image::bulkCreateFromTinder] - (%s) %s",e.name,e.message);
-                });
+           .catch(NoUniqueRecordsError,function(e){
+               log.warn("[Image::bulkCreateFromTinder] - (%s) %s",e.name,e.message);
+           });
         }
     },
     instanceMethods: {
@@ -56,6 +58,33 @@ var Image = seq.define("Image", {
                 }
             };
             return (Image.instanceDownload || f).call(this);
+        },
+        showDetections: function() {
+            var imdbp = Promise.resolve(this);
+            var imp = Promise.promisify(cv.readImage)(path.join(config.gather.image_dir,this._id+"."+this.ext));
+            var detectionsp = this.getFaceDetections();
+            return Promise.join(imdbp,imp,detectionsp).spread(function(imdb,im,detections){
+                return Promise.all(_.map(detections,function(detection){return detection.getBoxes();}))
+                .each(function(boxes){
+                    _.each(boxes,function(box){
+                        var w = box.extent_x - box.origin_x;
+                        var h = box.extent_y - box.origin_y;
+                        if (box.part_index != null) {
+                            im.rectangle([box.origin_x,box.origin_y],[w,h],[255,0,0]);
+                            var opts = {
+                                center: {x:box.origin_x+w*0.5,y:box.origin_y+h*0.5},
+                                axes: {width:2,height:2},
+                                color: [0,0,255],
+                                thickness: 2
+                            };
+                            im.ellipse(opts);
+                        }
+                    });
+                })
+                .then(function(){
+                    return im;
+                });
+            });
         }
     }
 });
