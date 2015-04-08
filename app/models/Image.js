@@ -78,6 +78,8 @@ var Image = seq.define("Image", {
                                 thickness: 2
                             };
                             im.ellipse(opts);
+                        } else {
+                            im.rectangle([box.origin_x,box.origin_y],[w,h],[255,0,255]);
                         }
                     });
                 })
