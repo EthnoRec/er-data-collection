@@ -62,7 +62,10 @@ var Person = seq.define("Person", {
                         });
                 })
                 .catch(NoUniqueRecordsError,function(e){
-                    log.warn("[Persoon::bulkCreateFromTinder] - (%s) %s",e.name,e.message);
+                    log.warn("[Person::bulkCreateFromTinder] - (%s) %s",e.name,e.message);
+                })
+                .catch(Sequelize.UniqueConstraintError,function(e){
+                    log.error("[Person::bulkCreateFromTinder] - (%s) Insert failed",e.name,e);
                 });
         }
     }

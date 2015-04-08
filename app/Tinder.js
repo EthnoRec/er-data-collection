@@ -70,6 +70,7 @@ Job.prototype.stop = function() {
 Job.prototype.status = function() {
     var status = _.pick(this,"location","limit","retry_delay","people_found","images_found","online","started");
     status.next_fetch = this.interval.getTimeLeft();
+    status.started = Math.round(status.started / 1000);
     log.debug("[Job#status] - %j",status,{});
     return status;
 };

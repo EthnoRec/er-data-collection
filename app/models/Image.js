@@ -41,6 +41,9 @@ var Image = seq.define("Image", {
            }))
            .catch(NoUniqueRecordsError,function(e){
                log.warn("[Image::bulkCreateFromTinder] - (%s) %s",e.name,e.message);
+           })
+           .catch(Sequelize.UniqueConstraintError,function(e){
+               log.error("[Image::bulkCreateFromTinder] - (%s) Insert failed",e.name,e);
            });
         }
     },
