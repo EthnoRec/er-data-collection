@@ -2,10 +2,10 @@ var express = require("express");
 var _ = require("underscore");
 var Promise = require("bluebird");
 
-var log = require("./app/logger");
-var Facebook = require("./app/Facebook");
-var Tinder = require("./app/Tinder").Tinder;
-var Job = require("./app/Tinder").Job;
+var log = require("app/logger");
+var Facebook = require("app/Facebook");
+var Tinder = require("app/Tinder").Tinder;
+var Job = require("app/Tinder").Job;
 
 var app = express();
 
@@ -13,7 +13,8 @@ app.use("/",express.static(__dirname + "/public"));
 app.use(require("body-parser").json());
 
 
-var sequelize = require("./app/models").sequelize;
+var sequelize = require("app/models").sequelize;
+require("app/models/DetectionJob");
 sequelize.sync();
 
 
@@ -42,6 +43,7 @@ app.get("/token/:token",function(req,res){
 
 app.use("",require("./app/routes/job"));
 app.use("",require("./app/routes/person"));
+app.use("",require("./app/routes/detection_job"));
 
 app.put("/tinder",function(req,res){
     log.debug("[%s %s] - %j",req.method,req.url,req.body,{});

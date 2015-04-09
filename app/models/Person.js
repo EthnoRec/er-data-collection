@@ -4,12 +4,11 @@ var moment = require("moment");
 var util = require("util");
 var Promise = require("bluebird");
 
-var config = require("../config");
-var log = require("../logger");
+var config = require("app/config");
+var log = require("app/logger");
 
-var seq = require("./index").sequelize;
-var bulkIgnoreDuplicates = require("./index").bulkIgnoreDuplicates;
-var NoUniqueRecordsError = require("./index").NoUniqueRecordsError;
+var bulkIgnoreDuplicates = require("./utils").bulkIgnoreDuplicates;
+var NoUniqueRecordsError = require("./utils").NoUniqueRecordsError;
 
 
 var Image = require("./Image");
@@ -41,58 +40,52 @@ var processImages = function(ps) {
 };
 
 
-var Person = seq.define("Person", {
-    _id: {primaryKey: true, type: Sequelize.CHAR(24), allowNull: false},
-    distance_mi: Sequelize.INTEGER,
-    name: Sequelize.STRING,
-    gender: Sequelize.INTEGER(2),
-    date_of_birth: Sequelize.INTEGER,
-    origin_lat: Sequelize.FLOAT,
-    origin_long: Sequelize.FLOAT
-}, {
-    classMethods: {
-        bulkCreateFromTinder: function (ps, location) {
-            var sum = function(a){return _.reduce(a,function(s,x){return s+x;},0);};
-            log.debug("[Person#bulkCreateFromTinder] - %d people (location=%j)", ps.length, location, {});
-            return this.bulkCreate(_.map(ps,function(p){return personFromTinder(p,location);}))
-                .then(function(people){
-                    return processImages(ps)
-                        .then(function(){
-                            return people;
-                        });
-                })
-                .catch(NoUniqueRecordsError,function(e){
-                    log.warn("[Person::bulkCreateFromTinder] - (%s) %s",e.name,e.message);
-                })
-                .catch(Sequelize.UniqueConstraintError,function(e){
-                    log.error("[Person::bulkCreateFromTinder] - (%s) Insert failed",e.name,e);
-                });
+
+var def = function(seq) {
+    var Person = seq.define("Person", {
+        _id: {primaryKey: true, type: Sequelize.CHAR(24), allowNull: false},
+        distance_mi: Sequelize.INTEGER,
+        name: Sequelize.STRING,
+        gender: Sequelize.INTEGER(2),
+        date_of_birth: Sequelize.INTEGER,
+        origin_lat: Sequelize.FLOAT,
+        origin_long: Sequelize.FLOAT
+    }, {
+        classMethods: {
+            bulkCreateFromTinder: function (ps, location) {
+                var sum = function(a){return _.reduce(a,function(s,x){return s+x;},0);};
+                log.debug("[Person#bulkCreateFromTinder] - %d people (location=%j)", ps.length, location, {});
+                return this.bulkCreate(_.map(ps,function(p){return personFromTinder(p,location);}))
+                    .then(function(people){
+                        return processImages(ps)
+                            .then(function(){
+                                return people;
+                            });
+                    })
+                    .catch(NoUniqueRecordsError,function(e){
+                        log.warn("[Person::bulkCreateFromTinder] - (%s) %s",e.name,e.message);
+                    })
+                    .catch(Sequelize.UniqueConstraintError,function(e){
+                        log.error("[Person::bulkCreateFromTinder] - (%s) Insert failed",e.name,e);
+                    });
+            }
         }
-    }
-});
-
-
-
-bulkIgnoreDuplicates(Person);
-
-
-Person.hasMany(Image,{
-    foreignKey: {
-        name: "person_id",
-        allowNull: true
-    }
-});
-
-Person.PersonNotFoundError = function(_id){
-    this.name = "PersonNotFoundError";
-    this.message = util.format("The person with _id=%s could not be found",_id);
+    });
+    bulkIgnoreDuplicates(Person);
+    Person.PersonNotFoundError = function(_id){
+        this.name = "PersonNotFoundError";
+        this.message = util.format("The person with _id=%s could not be found",_id);
+    };
+    Person.PersonNotFoundError.prototype = Object.create(Error.prototype, { 
+          constructor: { value: Person.PersonNotFoundError } 
+    });
+    return Person;
 };
-Person.PersonNotFoundError.prototype = Object.create(Error.prototype, { 
-      constructor: { value: Person.PersonNotFoundError } 
-});
 
-module.exports = Person;
 
-if (process.env.NODE_ENV == "test") {
-    module.exports.processImages = processImages;
-}
+
+module.exports = def;
+
+//if (process.env.NODE_ENV == "test") {
+    //module.exports.processImages = processImages;
+//}

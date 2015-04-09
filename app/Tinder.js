@@ -5,12 +5,12 @@ var path = require("path");
 var _ = require("underscore");
 var Promise = require("bluebird");
 
-var log = require("./logger");
+var log = require("app/logger");
 
-var config = require("./config");
+var config = require("app/config");
 
 var Sequelize = require("sequelize");
-var Person = require("./models/Person");
+var Person = require("app/models/Person");
 
 var Job = function(tinder,options) {
     // options = location.lat: 0.0, location.long: 0.0, limit: 10, retry_delay: 60*60
@@ -169,7 +169,7 @@ Tinder.prototype.fetch = function(me) {
     })
     .then(function(people){
         log.debug("[Tinder#fetch] - found %d people | %d new people and %d new images",
-            people.length,-1,-1,{});
+            people? people.length : 0,-1,-1,{});
 
     });
 };

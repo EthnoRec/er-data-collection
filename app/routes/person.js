@@ -3,13 +3,13 @@ var router = express.Router();
 
 var _ = require("underscore");
 var Promise = require("bluebird");
-var log = require("../logger");
+var log = require("app/logger");
 
-var Tinder = require("../Tinder").Tinder;
-var Job = require("../Tinder").Job;
+var Tinder = require("app/Tinder").Tinder;
+var Job = require("app/Tinder").Job;
 
-var Person = require("../models/Person");
-var Image = require("../models/Image");
+var Person = require("app/models/Person");
+var Image = require("app/models/Image");
 
 
 router.get("/person/list",function(req,res){

@@ -5,46 +5,43 @@ var log = require("../logger");
 
 var seq = new Sequelize(config.db.database, config.db.username, config.db.password, config.db);
 
-var NoUniqueRecordsError = function(Model){
-    this.name = "NoUniqueRecordsError";
-    this.message = "No unique records found among those to be inserted in bulk";
-    this.model = Model.name;
-};
-NoUniqueRecordsError.prototype = Object.create(Error.prototype, { 
-      constructor: { value: NoUniqueRecordsError } 
+var DetectionJob = require("./DetectionJob")(seq);
+var Person = require("./Person")(seq);
+var Image = require("./Image")(seq);
+var Box = require("./Box")(seq);
+var FaceDetection = require("./FaceDetection")(seq);
+
+Person.hasMany(Image,{
+    foreignKey: {
+        name: "person_id",
+        allowNull: true
+    }
 });
-var bulkIgnoreDuplicates = function(Model) {
-    Model.beforeBulkCreate(function(records, fields) {
-        var ids = _.pluck(records,"_id");
-        var idlen = Model.rawAttributes._id.type.options.length;
-        var padId = function(_id) {
-            return _id + _.times(idlen-_id.length,function(){return " ";}).join("");
-        };
 
-        return Model.findAll({
-            where: {_id: {in: ids}},
-            attributes: ["_id"]})
-            .then(function(instances){
-               var existing = _.pluck(instances,"_id"); 
 
-               _.each(existing,function(eid){
-                   var ind = _.findIndex(records,function(r){
-                        return padId(r._id) == eid;
-                   });
-                   if (ind > -1) {
-                        records.splice(ind,1);
-                   }
-               });
+Image.belongsTo(DetectionJob,{
+    foreignKey: {
+        name: "detection_job_id",
+        allowNull: true
+    }
+});
+DetectionJob.hasMany(Image,{
+    foreignKey: {
+        name: "detection_job_id",
+        allowNull: true
+    }
+});
 
-               if (_.isEmpty(records)) {
-                   throw new NoUniqueRecordsError(Model);
-               } else {
-                   return seq.Promise.resolve(records);
-               }
-            })
-    });
-}
-
-module.exports.NoUniqueRecordsError = NoUniqueRecordsError;
-module.exports.bulkIgnoreDuplicates = bulkIgnoreDuplicates;
+FaceDetection.hasMany(Box,{
+    foreignKey: {
+        name: "fd_id",
+        allowNull: false
+    }
+});
 module.exports.sequelize = seq;
+
+module.exports.DetectionJob = DetectionJob;
+module.exports.Person = Person;
+module.exports.Image = Image;
+module.exports.FaceDetection = FaceDetection;
+module.exports.Box = Box;

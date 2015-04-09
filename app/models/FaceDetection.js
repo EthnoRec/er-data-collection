@@ -5,23 +5,19 @@ var Sequelize = require("sequelize");
 
 var config = require("../config");
 //var log = require("../logger");
-var Box = require("./Box");
-
-var seq = require("./index").sequelize;
-
-var FaceDetection = seq.define("FaceDetection", {
-    _id: {primaryKey: true, type: Sequelize.INTEGER, autoIncrement: true, allowNull: false},
-    score: Sequelize.FLOAT,
-    component: Sequelize.INTEGER
-}, {});
+//var Box = require("./Box");
 
 
-FaceDetection.hasMany(Box,{
-    foreignKey: {
-        name: "fd_id",
-        allowNull: false
-    }
-});
+var def = function(seq) {
+    var FaceDetection = seq.define("FaceDetection", {
+        _id: {primaryKey: true, type: Sequelize.INTEGER, autoIncrement: true, allowNull: false},
+        score: Sequelize.FLOAT,
+        component: Sequelize.INTEGER
+    }, {});
+    return FaceDetection;
+};
 
 
-module.exports = FaceDetection;
+
+
+module.exports = def;

@@ -12,7 +12,7 @@ location.manchester = {lat: 53.480759, long: -2.242631};
 
 actions.job_post = function() {
 
-    var body = { location: location.manchester, limit: 10, retry_delay: 60*60 };
+    var body = { location: location.guadalajara, limit: 10, retry_delay: 60 };
     request
         .post(host+"/job",{json:true,body:body},function(error,response,body){
             console.log(response.statusCode); 
@@ -36,9 +36,17 @@ actions.job_delete = function() {
         });
 };
 actions.tinder_put = function() {
-    var body = {location:location.manchester};
+    var body = {location:location.guadalajara};
     request
         .put(host+"/tinder",{json:true,body:body},function(error,response,body){
+            console.log(response.statusCode); 
+            console.log(body); 
+        });
+};
+actions.djob_post = function() {
+    var body = { images: 5 };
+    request
+        .post(host+"/detection/job",{json:true,body:body},function(error,response,body){
             console.log(response.statusCode); 
             console.log(body); 
         });
