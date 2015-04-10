@@ -45,8 +45,12 @@ if (command == "djob") {
         console.log(body);
         request
             .post(host+"/detection/job",{json:true,body:body},function(error,response,body){
-                console.log(response.statusCode); 
-                console.log(body); 
+                if (error) {
+                    console.error(error);
+                } else {
+                    console.log(response.statusCode); 
+                    console.log(body); 
+                }
             });
     }
 } else if (command == "tjob") {

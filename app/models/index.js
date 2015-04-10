@@ -18,6 +18,13 @@ Person.hasMany(Image,{
     }
 });
 
+Image.belongsTo(Person,{
+    foreignKey: {
+        name: "person_id",
+        allowNull: true
+    }
+});
+
 Image.hasMany(FaceDetection,{
     foreignKey: {
         name: "image_id",
