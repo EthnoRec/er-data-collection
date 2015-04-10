@@ -59,7 +59,7 @@ var def = function(seq) {
                         return 0;
                     }
                 };
-                return (Image.instanceDownload || f).call(this);
+                return (TImage.instanceDownload || f).call(this);
             },
             showDetections: function() {
                 var imdbp = Promise.resolve(this);
@@ -97,13 +97,6 @@ var def = function(seq) {
     return TImage
 };
 
-
-//Image.hasMany(FaceDetection,{
-    //foreignKey: {
-        //name: "image_id",
-        //allowNull: false
-    //}
-//});
 
 
 module.exports = def;

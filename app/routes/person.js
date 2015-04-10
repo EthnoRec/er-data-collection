@@ -8,8 +8,8 @@ var log = require("app/logger");
 var Tinder = require("app/Tinder").Tinder;
 var Job = require("app/Tinder").Job;
 
-var Person = require("app/models/Person");
-var Image = require("app/models/Image");
+var Person = require("app/models").Person;
+var Image = require("app/models").Image;
 
 
 router.get("/person/list",function(req,res){
