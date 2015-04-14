@@ -30,7 +30,7 @@ router.post("/detection/job",function(req,res){
     var jobless_images = Image.findAll(query);
     Promise.join(DetectionJob.create({}),jobless_images,function(dj,images){
         var img_ids = images.map(function(image){return image._id;});
-        return Promise.update({detection_job_id:dj._id},{where:{_id: {$in:img_ids}}})
+        return Image.update({detection_job_id:dj._id},{where:{_id: {$in:img_ids}}})
         .then(function(){
             res.send({_id: dj._id});
         });

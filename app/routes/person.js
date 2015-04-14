@@ -49,13 +49,22 @@ router.get("/image/:_id",function(req,res){
     log.debug("[%s %s] - %j",req.method,req.url,req.body,{});
     Image.find({where:{_id:req.params._id}})
     .then(function(img){
-        return img.showDetections();
+        if (img) {
+            return img.showDetections({type:"basic"});
+        } else {
+            // TODO: create a proper error
+            throw new Error("Image not found");
+        }
     })
     .then(function(im){
         var buf = im.toBuffer();
         res.set("Content-Type", "image/jpeg");
         res.set("Content-Length", buf.length);
         res.send(buf);
+    })
+    .catch(function(err){
+        log.error("[%s %s] - %s",req.method,req.url,err.message,{});
+        res.status(404).send(err.message);
     });
 });
 

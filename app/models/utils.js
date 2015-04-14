@@ -1,3 +1,5 @@
+var _ = require("underscore");
+var Promise = require("bluebird");
 
 var NoUniqueRecordsError = function(Model){
     this.name = "NoUniqueRecordsError";
@@ -23,7 +25,7 @@ var bulkIgnoreDuplicates = function(Model) {
 
                _.each(existing,function(eid){
                    var ind = _.findIndex(records,function(r){
-                        return padId(r._id) == eid;
+                        return padId(r._id) === eid;
                    });
                    if (ind > -1) {
                         records.splice(ind,1);
@@ -33,10 +35,10 @@ var bulkIgnoreDuplicates = function(Model) {
                if (_.isEmpty(records)) {
                    throw new NoUniqueRecordsError(Model);
                } else {
-                   return seq.Promise.resolve(records);
+                   return Promise.resolve(records);
                }
-            })
+            });
     });
-}
+};
 module.exports.NoUniqueRecordsError = NoUniqueRecordsError;
 module.exports.bulkIgnoreDuplicates = bulkIgnoreDuplicates;

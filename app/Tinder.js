@@ -10,7 +10,7 @@ var log = require("app/logger");
 var config = require("app/config");
 
 var Sequelize = require("sequelize");
-var Person = require("app/models/Person");
+var Person = require("app/models").Person;
 
 var Job = function(tinder,options) {
     // options = location.lat: 0.0, location.long: 0.0, limit: 10, retry_delay: 60*60
@@ -50,14 +50,16 @@ Job.prototype.start = function() {
         return me;
     };
     if (this.location) {
-        return this.tinder.updatePosition(this.location).then(_start)
+        return this.tinder.updatePosition(this.location).then(function(){
+            return Promise.resolve(_start());
+        })
         .catch(Tinder.SmallChangeError,function(err){
             log.warn("[Job#start] - location change request ignored (%s)",err.name);
             _start();
             return Promise.resolve(me);
         })
     } else {
-        return Promise.resolve(me);    
+        return Promise.resolve(_start());    
     }
 };
 
@@ -120,6 +122,7 @@ Tinder.prototype.authed = Promise.promisify(function(cb){
 
 Tinder.prototype.updatePosition = function(location) {
     var me = this;
+    log.debug("[Tinder#updatePosition] - called with ",location)
     return this.client.updatePosition(location.long,location.lat)
         .then(function(response){
             if (response.error){
@@ -165,7 +168,11 @@ Tinder.prototype.fetch = function(me) {
                 throw new Tinder.RecsTimeoutError();
             }
         }
-        return Person.bulkCreateFromTinder(data.results,me.job.location);
+        if (data.results) {
+            return Person.bulkCreateFromTinder(data.results,me.job.location);
+        } else {
+            return Promise.resolve([]);
+        }
     })
     .then(function(people){
         log.debug("[Tinder#fetch] - found %d people | %d new people and %d new images",

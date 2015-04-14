@@ -5,6 +5,7 @@ location.milan = {lat: 45.465422, long: 9.185924};
 location.guadalajara = {lat: 20.659699, long: -103.349609};
 location.manchester = {lat: 53.480759, long: -2.242631};
 location.busan = {lat: 35.166667, long:129.066667};
+location.mumbai = {lat: 18.975, long: 72.825833};
 
 var host = "http://localhost:3000";
 
@@ -82,7 +83,7 @@ if (command == "djob") {
             .help("h")
             .argv;
 
-            var body = { location: location[ccargv.l], limit: ccargv.limit, retry_delay: ccargv.delay };
+            var body = { location: location[ccargv.L], limit: ccargv.limit, retry_delay: ccargv.delay };
             request
                 .post(host+"/job",{json:true,body:body},function(error,response,body){
                     console.log(response.statusCode); 

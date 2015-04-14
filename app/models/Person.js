@@ -11,7 +11,6 @@ var bulkIgnoreDuplicates = require("./utils").bulkIgnoreDuplicates;
 var NoUniqueRecordsError = require("./utils").NoUniqueRecordsError;
 
 
-var Image = require("./Image");
 
 var personFromTinder = function(p,location) {
     p = _.pick(p, "_id", "distance_mi", "name", "gender", "date_of_birth");
@@ -22,6 +21,7 @@ var personFromTinder = function(p,location) {
 };
 
 var processImages = function(ps) {
+    var Image = require("app/models").Image;
     // [Promise<[Image]>]
     var imgPromises = _.map(ps,function(p){return Image.bulkCreateFromTinder(p.photos);});
     return Promise.each(imgPromises,function(images){

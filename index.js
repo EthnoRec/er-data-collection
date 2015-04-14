@@ -1,4 +1,5 @@
 var express = require("express");
+var exphbs  = require("express-handlebars");
 var _ = require("underscore");
 var Promise = require("bluebird");
 
@@ -9,6 +10,8 @@ var Job = require("app/Tinder").Job;
 
 var app = express();
 
+app.engine("handlebars", exphbs({defaultLayout: "main"}));
+app.set("view engine", "handlebars");
 app.use("/",express.static(__dirname + "/public"));
 app.use(require("body-parser").json());
 
@@ -43,6 +46,7 @@ app.get("/token/:token",function(req,res){
 
 app.use("",require("./app/routes/job"));
 app.use("",require("./app/routes/person"));
+app.use("",require("./app/routes/detection"));
 app.use("",require("./app/routes/detection_job"));
 
 app.put("/tinder",function(req,res){
