@@ -43,9 +43,13 @@ var def = function(seq) {
     }, {
         classMethods: {
             bulkCreateFromTinder: function(photos) {
-               return this.bulkCreate(_.map(photos,function(p){
-                   return Image.imageFromTinder(p);
+               return Promise.all(_.map(photos,function(p){
+                   return Image.create(Image.imageFromTinder(p))
+                            .catch(Sequelize.UniqueConstraintError,function(){});
                }))
+               .filter(function(image){
+                    return image !== undefined;
+               })
                .catch(NoUniqueRecordsError,function(e){
                    log.warn("[Image::bulkCreateFromTinder] - (%s) %s",e.name,e.message);
                })

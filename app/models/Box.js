@@ -1,11 +1,6 @@
 var Sequelize = require("sequelize");
-//var _ = require("underscore");
-//var moment = require("moment");
-//var util = require("util");
 
 var config = require("../config");
-//var log = require("../logger");
-//
 var def = function(seq) {
     var Box = seq.define("Box", {
         _id: {primaryKey: true, type: Sequelize.INTEGER, autoIncrement: true, allowNull: false},

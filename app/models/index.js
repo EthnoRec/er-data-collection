@@ -10,6 +10,7 @@ var Person = require("./Person")(seq);
 var Image = require("./Image")(seq);
 var Box = require("./Box")(seq);
 var FaceDetection = require("./FaceDetection")(seq);
+var Location = require("./Location")(seq);
 
 Person.hasMany(Image,{
     foreignKey: {
@@ -59,3 +60,4 @@ module.exports.Person = Person;
 module.exports.Image = Image;
 module.exports.FaceDetection = FaceDetection;
 module.exports.Box = Box;
+module.exports.Location = Location;
