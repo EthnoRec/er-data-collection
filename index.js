@@ -53,7 +53,14 @@ app.put("/tinder",function(req,res){
     log.debug("[%s %s] - %j",req.method,req.url,req.body,{});
     // TODO: support more settings and add error checking
     Tinder.required().then(function(tinder){
-        return tinder.updatePosition(req.body.location);
+        var promises = [];
+        if (_.has(req.body,"profile")) {
+            promises.push(Tinder.tinder.update(req.body.profile));
+        }
+        if (_.has(req.body,"location")) {
+            promises.push(tinder.updatePosition(req.body.location));
+        }
+        return Promise.all(promises);
     })
     .then(function(d){
         log.debug("[%s %s] - %j",req.method,req.url,d,{});

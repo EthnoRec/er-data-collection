@@ -89,6 +89,7 @@ var Tinder = function(token,uid) {
     var promisified = function(client){
         client.getRecommendations = Promise.promisify(client.getRecommendations);
         client.updatePosition = Promise.promisify(client.updatePosition);
+        client.updateProfile = Promise.promisify(client.updateProfile);
         return client; 
     };
 
@@ -187,8 +188,14 @@ Tinder.prototype.submitJob = function(job) {
     return this.job.start();
 };
 
+Tinder.prototype.update = function(options) {
+    log.debug("[Tinder#update]");
+    return this.client.updateProfile(options);
+};
+
 Tinder.prototype.pause = function(state,cb) {
     // TODO: pause the actual timer
+    // TODO: port to promises 
     if (state && this.job) {
         this.job.stop();
         log.debug("[Tinder#pause] - Job paused");

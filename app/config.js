@@ -11,9 +11,11 @@ config.development = {
     db: {
         dialect: "postgres",
         host: "127.0.0.1",
+        port: 55432,
         database: "tinder_development",
         username: "tinder",
-        password: "tinder_pw"
+        password: "tinder_pw",
+        logging: false
     },
     logger: {
         level: "debug"
