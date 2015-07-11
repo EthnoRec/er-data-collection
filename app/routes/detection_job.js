@@ -9,18 +9,21 @@ var Image = require("app/models").Image;
 var Person = require("app/models").Person;
 
 router.post("/detection/job",function(req,res){
-    // {images: 10}
+    // {images: 10, location:{lat,long}, gender: 0}
     var imagesn = req.body.images;
     var location = req.body.location;
+    var gender = req.body.gender;
 
     var query = { 
         limit: imagesn, 
         where: {detection_job_id: null}
     };
 
+    // TODO: use gender filter even if no location specified
     if (location) {
         query.include = [{model: Person, where: {
             $and: [
+                util.format("gender = %d",gender),
                 util.format("abs(origin_lat - %d) < 1",location.lat),
                 util.format("abs(origin_long - %d) < 1",location.long)
             ]}

@@ -40,8 +40,12 @@ if (command == "djob") {
                 default: "all",
                 alias: "location"
             })
+            .option("gender",{
+                describe:"Gender [male(0)|female(1)]",
+                default: 0
+            })
             .argv;
-        var body = { images: parseInt(ccargv.n) };
+        var body = { images: parseInt(ccargv.n), gender: parseInt(ccargv.gender) };
         if (ccargv.L != "all") {
             body.location = location[ccargv.L];
         }
@@ -122,12 +126,10 @@ if (command == "djob") {
             alias: "location"
         })
         .option("gender",{
-            type:"string",
-            describe:"Your gender [male|female]"
+            describe:"Your gender [male(0)|female(1)]"
         })
         .option("gender-filter",{
-            type:"string",
-            describe:"Looking for [male|female]"
+            describe:"Looking for [male(0)|female(1)]"
         })
         .option("distance-filter",{
             describe:"Scan distance filter"

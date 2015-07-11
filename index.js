@@ -76,7 +76,7 @@ app.put("/tinder",function(req,res){
     });
 });
 
-app.listen(3000,"localhost",function(){
+app.listen(3000,"0.0.0.0",function(){
         log.info("[express] - Started");
     })
     .on("error",function(e){

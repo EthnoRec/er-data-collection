@@ -82,14 +82,9 @@ router.put("/job",function(req,res){
             return Tinder.tinder.withJob();
         })
         .then(function(job){
-            var promises = [];
             if (_.has(req.body,"pause")) {
                 Tinder.tinder.pause(req.body.pause);
             }
-            if (_.has(req.body,"profile")) {
-                promises.push(Tinder.tinder.update(req.body.profile));
-            }
-            return Promise.all(promises);
         })
         .catch(Tinder.TinderRequiredError,function(err){
             log.error("[%s %s] - (%s) %s",req.method,req.url,err.name,err.message,{});
