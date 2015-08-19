@@ -1,0 +1,20 @@
+<h1>Detection List</h1>
+
+<table class="table">
+<thead>
+<tr>
+<th>ID</th>
+<th>Score</th>
+<th>Component</th>
+</tr>
+</thead>
+<tbody>
+{{#each items}}
+<tr>
+<td><a href="/image/{{image_id}}">{{_id}}</a></td>
+<td>{{score}}</td>
+<td>{{component}}</td>
+</tr>
+{{/each}}
+</tbody>
+</table>
