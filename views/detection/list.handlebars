@@ -1,4 +1,10 @@
 <h1>Detection List</h1>
+<style type="text/css" media="all">
+   td img {
+        width: 300px;
+        height: 300px;
+    } 
+</style>
 
 <table class="table">
 <thead>
@@ -6,14 +12,16 @@
 <th>ID</th>
 <th>Score</th>
 <th>Component</th>
+<th>Name</th>
 </tr>
 </thead>
 <tbody>
 {{#each items}}
 <tr>
-<td><a href="/image/{{image_id}}">{{_id}}</a></td>
+<td><img src="/image/{{Image._id}}" /></td>
 <td>{{score}}</td>
 <td>{{component}}</td>
+<td>{{Image.Person.name}}</td>
 </tr>
 {{/each}}
 </tbody>

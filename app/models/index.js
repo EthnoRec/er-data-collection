@@ -18,6 +18,12 @@ Person.hasMany(Image,{
         allowNull: true
     }
 });
+Person.hasMany(Image,{
+    foreignKey: {
+        name: "person_id",
+        allowNull: true
+    }
+});
 
 Image.belongsTo(Person,{
     foreignKey: {
@@ -50,6 +56,12 @@ DetectionJob.hasMany(Image,{
 FaceDetection.hasMany(Box,{
     foreignKey: {
         name: "fd_id",
+        allowNull: false
+    }
+});
+FaceDetection.belongsTo(Image,{
+    foreignKey: {
+        name: "image_id",
         allowNull: false
     }
 });

@@ -77,16 +77,17 @@ var def = function(seq) {
                 var imdbp = Promise.resolve(this);
                 var imp = Promise.promisify(cv.readImage)(path.join(config.gather.image_dir,this._id+"."+this.ext));
                 var detectionsp = this.getFaceDetections();
+                var origin = function(box){return [box.origin_x,box.origin_y];};
+                var size   = function(box){return [box.extent_x-box.origin_x,box.extent_y-box.origin_y];};
                 return Promise.join(imdbp,imp,detectionsp).spread(function(imdb,im,detections){
+                    var boundingBox = null;
                     return Promise.all(_.map(detections,function(detection){return detection.getBoxes();}))
                     .each(function(boxes){
-                        var origin = function(box){return [box.origin_x,box.origin_y];};
-                        var size   = function(box){return [box.extent_x-box.origin_x,box.extent_y-box.origin_y];};
 
                         if (opts && opts.type == "basic") {
                             boxes = _.sortBy(boxes,"part_index");
-                            var boundingBox = _.findWhere(boxes,{part_index:null})
-                            im.rectangle(origin(boundingBox),size(boundingBox),[255,0,255]);
+                            boundingBox = _.findWhere(boxes,{part_index:null})
+                            //im.rectangle(origin(boundingBox),size(boundingBox),[255,0,255]);
                             boxes = _.without(boxes,boundingBox);
 
                             var noseBox = mergeBoxes(boxes.slice(0,9));
@@ -117,6 +118,7 @@ var def = function(seq) {
                         }
                     })
                     .then(function(){
+                        im = im.crop(origin(boundingBox)[0], origin(boundingBox)[1], size(boundingBox)[0], size(boundingBox)[1]);
                         return im;
                     });
                 });

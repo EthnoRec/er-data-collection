@@ -44,7 +44,6 @@ router.get("/person/:_id",function(req,res){
         });
 });
 
-
 router.get("/image/:_id",function(req,res){
     log.debug("[%s %s] - %j",req.method,req.url,req.body,{});
     Image.find({where:{_id:req.params._id}})
